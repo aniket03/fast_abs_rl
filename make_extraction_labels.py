@@ -1,5 +1,6 @@
 """produce the dataset with (psudo) extraction label"""
 import os
+from json import JSONDecodeError
 from os.path import exists, join
 import json
 from time import time
@@ -42,10 +43,14 @@ def get_extract_label(art_sents, abs_sents):
 def process(split, i):
     data_dir = join(DATA_DIR, split)
     with open(join(data_dir, '{}.json'.format(i))) as f:
-        data = json.loads(f.read())
+        try:
+            data = json.loads(f.read())
+        except JSONDecodeError:
+            data = {'article': '', 'abstract': ''}
+
     tokenize = compose(list, _split_words)
-    art_sents = tokenize(data['article'])
-    abs_sents = tokenize(data['abstract'])
+    art_sents = tokenize(data['article']) if data['article'] is not '' else []
+    abs_sents = tokenize(data['abstract']) if data['abstract'] is not '' else []
     if art_sents and abs_sents: # some data contains empty article/abstract
         extracted, scores = get_extract_label(art_sents, abs_sents)
     else:
