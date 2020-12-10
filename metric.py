@@ -83,7 +83,7 @@ def compute_bertscore(output, reference):
 
     bertscore_metric = compute_bertscore.metric
     final_score_tr = bertscore_metric.compute(predictions=[output], references=[reference],
-                                              lang='en', device='cpu', rescale_with_baseline=True)
+                                              lang='en', device='cuda', rescale_with_baseline=True)
     final_score_val = final_score_tr['f1'].item()
 
     return final_score_val
