@@ -140,7 +140,8 @@ def train(args):
     # reward_fn = compute_rouge_l
     reward_fn = compute_bertscore
     reward_fn.metric = datasets.load_metric('bertscore')
-    stop_reward_fn = compute_rouge_n(n=1)
+    stop_reward_fn = compute_bertscore
+    stop_reward_fn.metric = datasets.load_metric('bertscore')
 
     # save abstractor binary
     if args.abs_dir is not None:
