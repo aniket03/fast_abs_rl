@@ -52,43 +52,72 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
     probs = []
     baselines = []
     ext_sents = []
+
+    # art_batch is the batch of complete documents.
+    # abs_batch is the batch of ground truth summary sentences for each document
     art_batch, abs_batch = next(loader)
+
+    # raw_arts is therefore list of sentences in each document
     for raw_arts in art_batch:
+
+        # inds must indicate the indices of the retrieved sentences
+        # ms indicates probability of selected index representing the actual sentence
+        # that should be retrieved
+        # bs indicates baseline value predicted by critic for each selection (inds)
         (inds, ms), bs = agent(raw_arts)
         baselines.append(bs)
         indices.append(inds)
         probs.append(ms)
+        # Get the extracted sentences
         ext_sents += [raw_arts[idx.item()]
                       for idx in inds if idx.item() < len(raw_arts)]
     with torch.no_grad():
+        # Run extracted sentences through the abstractor.
         summaries = abstractor(ext_sents)
+
     i = 0
     rewards = []
     avg_reward = 0
+
+    # Run through the retrieved sentences list (inds) and ground truth summary sentences (abss)
+    # for each document
     for inds, abss in zip(indices, abs_batch):
-        rs = ([reward_fn(summaries[i+j], abss[j])
-              for j in range(min(len(inds)-1, len(abss)))]
-              + [0 for _ in range(max(0, len(inds)-1-len(abss)))]
-              + [stop_coeff*stop_reward_fn(
-                  list(concat(summaries[i:i+len(inds)-1])),
-                  list(concat(abss)))])
+        # We use i+j in summaries, since summaries is 1 D array and not a dict of predicted summaries
+        # for each document. 'i' in a way iterates through all documents.
+        rs = (
+
+            # Compute reward by comparing jth predicted summary sentence (summaries[i+j]) and
+            # jth ground truth sunmmary sentence (abss[j])
+            [reward_fn(summaries[i+j], abss[j]) for j in range(min(len(inds)-1, len(abss)))] +
+
+            # Add zero rewards for number of sentences predicted more than ground truth summary.
+            # Difference has -1 since one special symbol (sentence) for stop is also predicted.
+            [0 for _ in range(max(0, len(inds)-1-len(abss)))] +
+
+            # The stop stop symbol reward, one which computes reward between complete generated
+            # summary and the complete actual summary
+            [stop_coeff * stop_reward_fn(list(concat(summaries[i:i+len(inds)-1])), list(concat(abss)))]
+        )
+
         assert len(rs) == len(inds)
         avg_reward += rs[-1]/stop_coeff
-        i += len(inds)-1
-        # compute discounted rewards
+        i += len(inds)-1  # Get to the beginning of next document's summary predictions.
+
+        # compute discounted rewards for the predicted-summary and actual-summary pair
         R = 0
         disc_rs = []
         for r in rs[::-1]:
             R = r + gamma * R
             disc_rs.insert(0, R)
         rewards += disc_rs
+
     indices = list(concat(indices))
     probs = list(concat(probs))
     baselines = list(concat(baselines))
+
     # standardize rewards
     reward = torch.Tensor(rewards).to(baselines[0].device)
-    reward = (reward - reward.mean()) / (
-        reward.std() + float(np.finfo(np.float32).eps))
+    reward = (reward - reward.mean()) / (reward.std() + float(np.finfo(np.float32).eps))
     baseline = torch.cat(baselines).squeeze()
     avg_advantage = 0
     losses = []
@@ -98,10 +127,11 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
         losses.append(-p.log_prob(action)
                       * (advantage/len(indices))) # divide by T*B
     critic_loss = F.mse_loss(baseline, reward)
+
     # backprop and update
     autograd.backward(
-        [critic_loss] + losses,
-        [torch.ones(1).to(critic_loss.device)]*(1+len(losses))
+        [critic_loss] + losses
+        # [torch.ones(1).to(critic_loss.device)]*(1+len(losses))
     )
     grad_log = grad_fn()
     opt.step()
