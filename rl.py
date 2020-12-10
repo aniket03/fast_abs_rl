@@ -96,7 +96,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
 
             # The stop stop symbol reward, one which computes reward between complete generated
             # summary and the complete actual summary
-            [stop_coeff * stop_reward_fn((concat(summaries[i:i+len(inds)-1])), (concat(abss)))]
+            [stop_coeff * stop_reward_fn(' '.join(concat(summaries[i:i+len(inds)-1])), ' '.join(concat(abss)))]
         )
 
         assert len(rs) == len(inds)
