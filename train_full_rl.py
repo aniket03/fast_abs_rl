@@ -6,6 +6,7 @@ import os
 from os.path import join, exists
 from itertools import cycle
 
+import datasets
 from toolz.sandbox.core import unzip
 from cytoolz import identity
 
@@ -138,6 +139,7 @@ def train(args):
     # TODO different reward
     # reward_fn = compute_rouge_l
     reward_fn = compute_bertscore
+    reward_fn.metric = datasets.load_metric('bertscore')
     stop_reward_fn = compute_rouge_n(n=1)
 
     # save abstractor binary
