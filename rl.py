@@ -88,7 +88,7 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
 
             # Compute reward by comparing jth predicted summary sentence (summaries[i+j]) and
             # jth ground truth sunmmary sentence (abss[j])
-            [reward_fn(summaries[i+j], abss[j]) for j in range(min(len(inds)-1, len(abss)))] +
+            [reward_fn(' '.join(summaries[i+j]), ' '.join(abss[j])) for j in range(min(len(inds)-1, len(abss)))] +
 
             # Add zero rewards for number of sentences predicted more than ground truth summary.
             # Difference has -1 since one special symbol (sentence) for stop is also predicted.
