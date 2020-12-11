@@ -3,6 +3,7 @@ import math
 from time import time
 from datetime import timedelta
 
+import datasets
 from toolz.sandbox.core import unzip
 from cytoolz import concat
 
@@ -12,7 +13,7 @@ from torch.nn import functional as F
 from torch import autograd
 from torch.nn.utils import clip_grad_norm_
 
-from metric import compute_rouge_l, compute_rouge_n
+from metric import compute_rouge_l, compute_rouge_n, compute_bertscore_wo_baseline_rescaling
 from training import BasicPipeline
 
 
@@ -35,8 +36,11 @@ def a2c_validate(agent, abstractor, loader):
             for (j, n), abs_sents in zip(ext_inds, abs_batch):
                 summs = all_summs[j:j+n]
                 # python ROUGE-1 (not official evaluation)
-                avg_reward += compute_rouge_n(list(concat(summs)),
-                                              list(concat(abs_sents)), n=1)
+                # avg_reward += compute_rouge_n(list(concat(summs)),
+                #                               list(concat(abs_sents)), n=1)
+                reward_fn = compute_bertscore_wo_baseline_rescaling
+                reward_fn.metric = datasets.load_metric('bertscore')
+                avg_reward += reward_fn(' '.join(concat(summs)), ' '.join(concat(abs_sents)))
                 i += 1
     avg_reward /= (i/100)
     print('finished in {}! avg reward: {:.2f}'.format(

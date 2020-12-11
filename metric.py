@@ -89,6 +89,16 @@ def compute_bertscore(output, reference):
     return final_score_val
 
 
+def compute_bertscore_wo_baseline_rescaling(output, reference):
+
+    bertscore_metric = compute_bertscore_wo_baseline_rescaling.metric
+    final_score_tr = bertscore_metric.compute(predictions=[output], references=[reference],
+                                              lang='en', device='cuda')
+    final_score_val = final_score_tr['f1'].item()
+
+    return final_score_val
+
+
 def _lcs(a, b):
     """ compute the longest common subsequence between a and b"""
     dp = _lcs_dp(a, b)
