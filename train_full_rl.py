@@ -136,14 +136,12 @@ def train(args):
     )
     train_batcher, val_batcher = build_batchers(args.batch)
 
-    # reward_fn = compute_rouge_l
-    # stop_reward_fn = compute_rouge_n(n=1)
-    # reward_fn = compute_rouge_l
-    reward_fn = compute_bertscore
-    reward_fn.metric = datasets.load_metric('bertscore')
-    stop_reward_fn = reward_fn
-    # stop_reward_fn = compute_bertscore
-    # stop_reward_fn.metric = datasets.load_metric('bertscore')
+    reward_fn = compute_rouge_l
+    stop_reward_fn = compute_rouge_n(n=1)
+    # # reward_fn = compute_rouge_l
+    # reward_fn = compute_bertscore
+    # reward_fn.metric = datasets.load_metric('bertscore')
+    # stop_reward_fn = reward_fn
 
     # save abstractor binary
     if args.abs_dir is not None:
