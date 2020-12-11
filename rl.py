@@ -93,9 +93,9 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             # Compute reward by comparing jth predicted summary sentence (summaries[i+j]) and
             # jth ground truth sunmmary sentence (abss[j])
             # When using ROUGE 1
-            [reward_fn(summaries[i + j], abss[j]) for j in range(min(len(inds) - 1, len(abss)))] +
+            # [reward_fn(summaries[i + j], abss[j]) for j in range(min(len(inds) - 1, len(abss)))] +
             # When using BERTScore
-            # [reward_fn(' '.join(summaries[i+j]), ' '.join(abss[j])) for j in range(min(len(inds)-1, len(abss)))] +
+            [reward_fn(' '.join(summaries[i+j]), ' '.join(abss[j])) for j in range(min(len(inds)-1, len(abss)))] +
 
             # Add zero rewards for number of sentences predicted more than ground truth summary.
             # Difference has -1 since one special symbol (sentence) for stop is also predicted.
@@ -104,9 +104,9 @@ def a2c_train_step(agent, abstractor, loader, opt, grad_fn,
             # The stop stop symbol reward, one which computes reward between complete generated
             # summary and the complete actual summary
             # When using ROUGE 1
-            [stop_coeff * stop_reward_fn(list(concat(summaries[i:i + len(inds) - 1])), list(concat(abss)))]
+            # [stop_coeff * stop_reward_fn(list(concat(summaries[i:i + len(inds) - 1])), list(concat(abss)))]
             # When using BERTScore
-            # [stop_coeff * stop_reward_fn(' '.join(concat(summaries[i:i+len(inds)-1])), ' '.join(concat(abss)))]
+            [stop_coeff * stop_reward_fn(' '.join(concat(summaries[i:i+len(inds)-1])), ' '.join(concat(abss)))]
         )
 
         assert len(rs) == len(inds)
