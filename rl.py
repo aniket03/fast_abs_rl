@@ -24,8 +24,9 @@ def a2c_validate(agent, abstractor, loader):
     avg_reward = 0
     i = 0
 
-    reward_fn = compute_bertscore_wo_baseline_rescaling
-    reward_fn.metric = datasets.load_metric('bertscore')
+    # IF using BERTScore
+    # reward_fn = compute_bertscore_wo_baseline_rescaling
+    # reward_fn.metric = datasets.load_metric('bertscore')
 
     with torch.no_grad():
         for art_batch, abs_batch in loader:
@@ -40,13 +41,15 @@ def a2c_validate(agent, abstractor, loader):
             for (j, n), abs_sents in zip(ext_inds, abs_batch):
                 summs = all_summs[j:j+n]
                 # python ROUGE-1 (not official evaluation)
-                # avg_reward += compute_rouge_n(list(concat(summs)),
-                #                               list(concat(abs_sents)), n=1)
-                avg_reward += reward_fn(' '.join(concat(summs)), ' '.join(concat(abs_sents)))
+                avg_reward += compute_rouge_n(list(concat(summs)),
+                                              list(concat(abs_sents)), n=1)
+                # IF using BERT score
+                # avg_reward += reward_fn(' '.join(concat(summs)), ' '.join(concat(abs_sents)))
                 i += 1
     avg_reward /= (i/100)
 
-    del reward_fn
+    # IF using BERTScore
+    # del reward_fn
 
     print('finished in {}! avg reward: {:.2f}'.format(
         timedelta(seconds=int(time()-start)), avg_reward))
