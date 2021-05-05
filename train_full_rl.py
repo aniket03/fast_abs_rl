@@ -6,7 +6,6 @@ import os
 from os.path import join, exists
 from itertools import cycle
 
-import datasets
 from toolz.sandbox.core import unzip
 from cytoolz import identity
 
