@@ -3,7 +3,8 @@ import math
 from time import time
 from datetime import timedelta
 
-import datasets
+# Only import when using bertscore
+# import datasets
 from toolz.sandbox.core import unzip
 from cytoolz import concat
 
