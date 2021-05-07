@@ -39,8 +39,8 @@ class MatchDataset(CnnDmDataset):
     """ single article sentence -> single abstract sentence
     (dataset created by greedily matching ROUGE)
     """
-    def __init__(self, split):
-        super().__init__(split, DATA_DIR)
+    def __init__(self, split, cross_rev_bucket=None):
+        super().__init__(split, DATA_DIR, cross_rev_bucket=cross_rev_bucket)
 
     def __getitem__(self, i):
         js_data = super().__getitem__(i)
@@ -81,7 +81,7 @@ def configure_training(opt, lr, clip_grad, lr_decay, batch_size):
 
     return criterion, train_params
 
-def build_batchers(word2id, cuda, debug):
+def build_batchers(word2id, cuda, debug, cross_rev_bucket=None):
     prepro = prepro_fn(args.max_art, args.max_abs)
     def sort_key(sample):
         src, target = sample
@@ -92,7 +92,7 @@ def build_batchers(word2id, cuda, debug):
     )
 
     train_loader = DataLoader(
-        MatchDataset('train'), batch_size=BUCKET_SIZE,
+        MatchDataset('train', cross_rev_bucket=cross_rev_bucket), batch_size=BUCKET_SIZE,
         shuffle=not debug,
         num_workers=4 if cuda and not debug else 0,
         collate_fn=coll_fn
@@ -116,7 +116,7 @@ def main(args):
         wc = pkl.load(f)
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(word2id,
-                                                args.cuda, args.debug)
+                                                args.cuda, args.debug,  cross_rev_bucket=args.cross_rev_bucket)
 
     # make net
     net, net_args = configure_net(len(word2id), args.emb_dim,
@@ -171,7 +171,8 @@ if __name__ == '__main__':
         description='training of the abstractor (ML)'
     )
     parser.add_argument('--path', required=True, help='root of the model')
-
+    parser.add_argument('--cross-rev-bucket', default=None,
+                        help='cross review bucket id if training agent to get difficulty scores for summarization')
 
     parser.add_argument('--vsize', type=int, action='store', default=30000,
                         help='vocabulary size')
