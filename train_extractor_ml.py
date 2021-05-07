@@ -39,8 +39,8 @@ class ExtractDataset(CnnDmDataset):
     """ article sentences -> extraction indices
     (dataset created by greedily matching ROUGE)
     """
-    def __init__(self, split):
-        super().__init__(split, DATA_DIR)
+    def __init__(self, split, cross_rev_bucket=None):
+        super().__init__(split, DATA_DIR, cross_rev_bucket)
 
     def __getitem__(self, i):
         js_data = super().__getitem__(i)
@@ -48,7 +48,7 @@ class ExtractDataset(CnnDmDataset):
         return art_sents, extracts
 
 
-def build_batchers(net_type, word2id, cuda, debug):
+def build_batchers(net_type, word2id, cuda, debug, cross_rev_bucket=None):
     assert net_type in ['ff', 'rnn']
     prepro = prepro_fn_extract(args.max_word, args.max_sent)
     def sort_key(sample):
@@ -62,7 +62,7 @@ def build_batchers(net_type, word2id, cuda, debug):
                        convert_batch(UNK, word2id))
 
     train_loader = DataLoader(
-        ExtractDataset('train'), batch_size=BUCKET_SIZE,
+        ExtractDataset('train', cross_rev_bucket=cross_rev_bucket), batch_size=BUCKET_SIZE,
         shuffle=not debug,
         num_workers=4 if cuda and not debug else 0,
         collate_fn=coll_fn_extract
@@ -128,7 +128,7 @@ def main(args):
         wc = pkl.load(f)
     word2id = make_vocab(wc, args.vsize)
     train_batcher, val_batcher = build_batchers(args.net_type, word2id,
-                                                args.cuda, args.debug)
+                                                args.cuda, args.debug, cross_rev_bucket=args.cross_rev_bucket)
 
     # make net
     net, net_args = configure_net(args.net_type,
@@ -184,6 +184,8 @@ if __name__ == '__main__':
         description='training of the feed-forward extractor (ff-ext, ML)'
     )
     parser.add_argument('--path', required=True, help='root of the model')
+    parser.add_argument('--cross-rev-bucket', default=None,
+                        help='cross review bucket id if training agent to get difficulty scores for summarization')
 
     # model options
     parser.add_argument('--net-type', action='store', default='rnn',
