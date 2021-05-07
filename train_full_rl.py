@@ -37,8 +37,8 @@ except KeyError:
 
 class RLDataset(CnnDmDataset):
     """ get the article sentences only (for decoding use)"""
-    def __init__(self, split):
-        super().__init__(split, DATA_DIR)
+    def __init__(self, split, cross_rev_bucket=None):
+        super().__init__(split, DATA_DIR, cross_rev_bucket=cross_rev_bucket)
 
     def __getitem__(self, i):
         js_data = super().__getitem__(i)
@@ -100,14 +100,14 @@ def configure_training(opt, lr, clip_grad, lr_decay, batch_size,
 
     return train_params
 
-def build_batchers(batch_size):
+def build_batchers(batch_size, cross_rev_bucket=None):
     def coll(batch):
         art_batch, abs_batch = unzip(batch)
         art_sents = list(filter(bool, map(tokenize(None), art_batch)))
         abs_sents = list(filter(bool, map(tokenize(None), abs_batch)))
         return art_sents, abs_sents
     loader = DataLoader(
-        RLDataset('train'), batch_size=batch_size,
+        RLDataset('train', cross_rev_bucket=cross_rev_bucket), batch_size=batch_size,
         shuffle=True, num_workers=4,
         collate_fn=coll
     )
@@ -133,7 +133,7 @@ def train(args):
         'adam', args.lr, args.clip, args.decay, args.batch,
         args.gamma, args.reward, args.stop, 'rouge-1'
     )
-    train_batcher, val_batcher = build_batchers(args.batch)
+    train_batcher, val_batcher = build_batchers(args.batch, cross_rev_bucket=args.cross_rev_bucket)
 
     reward_fn = compute_rouge_l
     stop_reward_fn = compute_rouge_n(n=1)
@@ -190,7 +190,8 @@ if __name__ == '__main__':
         description='program to demo a Seq2Seq model'
     )
     parser.add_argument('--path', required=True, help='root of the model')
-
+    parser.add_argument('--cross-rev-bucket', default=None,
+                        help='cross review bucket id if training agent to get difficulty scores for summarization')
 
     # model options
     parser.add_argument('--abs_dir', action='store',
