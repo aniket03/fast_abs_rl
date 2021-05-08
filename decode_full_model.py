@@ -165,7 +165,12 @@ if __name__ == '__main__':
     args = parser.parse_args()
     args.cuda = torch.cuda.is_available() and not args.no_cuda
 
-    data_split = 'test' if args.test else 'val'
+    if args.test:
+        data_split = 'test'
+    elif args.val:
+        data_split = 'val'
+    else:
+        data_split = 'train'
     decode(args.path, args.model_dir,
            data_split, args.batch, args.beam, args.div,
            args.max_dec_word, args.cuda, args.cross_rev_bucket)
