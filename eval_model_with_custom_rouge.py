@@ -39,7 +39,7 @@ def main(args):
     df = pd.DataFrame()
     df['file_id'] = file_ids
     df['rouge_score'] = rouge_scores_list
-    df.to_csv(join('rouge_score_files', args.rouge_scores_file_name))
+    df.to_csv(join('./rouge_score_files', args.rouge_scores_file_name))
 
 
 if __name__ == '__main__':
