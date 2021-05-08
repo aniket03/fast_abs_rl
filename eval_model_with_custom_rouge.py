@@ -39,7 +39,7 @@ def main(args):
     df = pd.DataFrame()
     df['file_id'] = file_ids
     df['rouge_score'] = rouge_scores_list
-    df.to_csv('rouge_scores-' + dec_dir + '.csv')
+    df.to_csv(join('rouge_score_files', args.rouge_scores_file_name))
 
 
 if __name__ == '__main__':
@@ -51,6 +51,8 @@ if __name__ == '__main__':
                         help='directory of actual article and summary pairs')
     parser.add_argument('--decoded-data-dir', default=None, required=True,
                         help='directory of decoded summaries')
+    parser.add_argument('--rouge-scores-file-name', default=None, required=True,
+                        help='File where rouge scores will be saved')
 
     args = parser.parse_args()
     main(args)
