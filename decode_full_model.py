@@ -23,7 +23,7 @@ from decoding import make_html_safe
 
 
 def decode(save_path, model_dir, split, batch_size,
-           beam_size, diverse, max_len, cuda):
+           beam_size, diverse, max_len, cuda, cross_rev_bucket=None):
     start = time()
     # setup model
     with open(join(model_dir, 'meta.json')) as f:
@@ -46,7 +46,7 @@ def decode(save_path, model_dir, split, batch_size,
     def coll(batch):
         articles = list(filter(bool, batch))
         return articles
-    dataset = DecodeDataset(split)
+    dataset = DecodeDataset(split, cross_rev_bucket=cross_rev_bucket)
 
     n_data = len(dataset)
     loader = DataLoader(
@@ -142,6 +142,8 @@ if __name__ == '__main__':
         description='run decoding of the full model (RL)')
     parser.add_argument('--path', required=True, help='path to store/eval')
     parser.add_argument('--model_dir', help='root of the full model')
+    parser.add_argument('--cross-rev-bucket', default=None,
+                        help='cross review bucket id if using agent to get difficulty scores for summarization')
 
     # dataset split
     data = parser.add_mutually_exclusive_group(required=True)
@@ -166,4 +168,4 @@ if __name__ == '__main__':
     data_split = 'test' if args.test else 'val'
     decode(args.path, args.model_dir,
            data_split, args.batch, args.beam, args.div,
-           args.max_dec_word, args.cuda)
+           args.max_dec_word, args.cuda, args.cross_rev_bucket)

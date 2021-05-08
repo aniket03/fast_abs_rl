@@ -25,7 +25,7 @@ class CnnDmDataset(Dataset):
         return self._n_data
 
     def __getitem__(self, i: int):
-        if self.cross_rev_bucket:
+        if self.cross_rev_bucket is not None:
             reqd_file_name = self.bucket_samples[i]
             with open(join(self._data_path, reqd_file_name)) as f:
                 js = json.loads(f.read())
