@@ -146,9 +146,8 @@ if __name__ == '__main__':
                         help='cross review bucket id if using agent to get difficulty scores for summarization')
 
     # dataset split
-    data = parser.add_mutually_exclusive_group(required=True)
-    data.add_argument('--val', action='store_true', help='use validation set')
-    data.add_argument('--test', action='store_true', help='use test set')
+    parser.add_argument('--val', action='store_true', help='use validation set')
+    parser.add_argument('--test', action='store_true', help='use test set')
 
     # decode options
     parser.add_argument('--batch', type=int, action='store', default=32,
