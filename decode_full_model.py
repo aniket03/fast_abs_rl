@@ -69,8 +69,9 @@ def decode(save_path, model_dir, split, batch_size,
     # Decoding
     i = 0
     with torch.no_grad():
-        for i_debug, raw_article_batch in enumerate(loader):
+        for i_debug, (raw_article_batch, batch_files_list) in enumerate(loader):
             tokenized_article_batch = map(tokenize(None), raw_article_batch)
+            batch_files_list = [file_name.split('.')[0] for file_name in batch_files_list]
             ext_arts = []
             ext_inds = []
             for raw_art_sents in tokenized_article_batch:
@@ -80,9 +81,9 @@ def decode(save_path, model_dir, split, batch_size,
                     # in some rare cases rnn-ext does not extract at all
                     ext = list(range(5))[:len(raw_art_sents)]
                 else:
-                    ext = [i.item() for i in ext]
+                    ext = [xx.item() for xx in ext]
                 ext_inds += [(len(ext_arts), len(ext))]
-                ext_arts += [raw_art_sents[i] for i in ext]
+                ext_arts += [raw_art_sents[xx] for xx in ext]
             if beam_size > 1:
                 all_beams = abstractor(ext_arts, beam_size, diverse)
                 dec_outs = rerank_mp(all_beams, ext_inds)
@@ -91,7 +92,7 @@ def decode(save_path, model_dir, split, batch_size,
             assert i == batch_size*i_debug
             for j, n in ext_inds:
                 decoded_sents = [' '.join(dec) for dec in dec_outs[j:j+n]]
-                with open(join(save_path, 'output/{}.dec'.format(i)),
+                with open(join(save_path, 'output/{}.dec'.format(batch_files_list[i])),
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
                 i += 1
