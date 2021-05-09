@@ -32,11 +32,14 @@ if __name__ == '__main__':
             sample_path = os.path.join(train_data_dir, sample_name)
             with open(sample_path) as f:
                 js = json.loads(f.read())
-                if js['article'] is None or js['article'] == '':
-                    continue
-
+            f.close()
+            if js['article'] is None or js['article'] == '':
+                del js
+                continue
+            del js
             samples_in_curr_buc.append(sample_name)
 
+        print ('No of samples in bucket: {} = {}'.format(bucket_id, len(samples_in_curr_buc)))
         bucket_samples_map[bucket_id] = samples_in_curr_buc
 
     # Check that each bucket has unique elements
