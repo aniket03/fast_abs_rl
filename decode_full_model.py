@@ -44,8 +44,17 @@ def decode(save_path, model_dir, split, batch_size,
 
     # setup loader
     def coll(batch):
-        articles = list(filter(bool, batch))
+        (raw_article_batch, batch_files_list) = batch
+        file_names = []
+        articles = []
+        for article, file_name in zip(raw_article_batch, batch_files_list):
+            if article == '' or article is None:
+                continue
+            else:
+                file_names.append(file_name)
+                articles.append(article)
         return articles
+
     dataset = DecodeDataset(split, cross_rev_bucket=cross_rev_bucket)
 
     n_data = len(dataset)
@@ -69,8 +78,9 @@ def decode(save_path, model_dir, split, batch_size,
     # Decoding
     i = 0
     with torch.no_grad():
-        for i_debug, raw_article_batch in enumerate(loader):
+        for i_debug, (raw_article_batch, batch_files_list) in enumerate(loader):
             tokenized_article_batch = map(tokenize(None), raw_article_batch)
+            batch_files_list = [file_name.split('.')[0] for file_name in batch_files_list]
             ext_arts = []
             ext_inds = []
             for raw_art_sents in tokenized_article_batch:
@@ -91,7 +101,7 @@ def decode(save_path, model_dir, split, batch_size,
             assert i == batch_size*i_debug
             for j, n in ext_inds:
                 decoded_sents = [' '.join(dec) for dec in dec_outs[j:j+n]]
-                with open(join(save_path, 'output/{}.dec'.format(i)),
+                with open(join(save_path, 'output/{}.dec'.format(batch_files_list[i])),
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
                 i += 1
