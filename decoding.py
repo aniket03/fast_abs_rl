@@ -48,8 +48,6 @@ class DecodeDataset(Dataset):
             reqd_file_name = self.bucket_samples[i]
             with open(join(self._data_path, reqd_file_name)) as f:
                 js = json.loads(f.read())
-                art_sents = js['article']
-            return art_sents, reqd_file_name
         else:
             with open(join(self._data_path, '{}.json'.format(i))) as f:
                 js = json.loads(f.read())
