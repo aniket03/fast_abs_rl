@@ -51,7 +51,10 @@ class DecodeDataset(Dataset):
         else:
             with open(join(self._data_path, '{}.json'.format(i))) as f:
                 js = json.loads(f.read())
-        return js
+
+        art_sents = js['article']
+
+        return art_sents
 
 
 def make_html_safe(s):
