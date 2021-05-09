@@ -33,7 +33,7 @@ def main(args):
         with open(join(dec_dir, dec_file_name)) as f:
             generation = f.read()
 
-        rouge_score = compute_rouge_n(generation, abstract)
+        rouge_score = compute_rouge_n(generation.split(' '), abstract.split(' '))
         rouge_scores_list.append(rouge_score)
 
     df = pd.DataFrame()
