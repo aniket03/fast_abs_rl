@@ -1,3 +1,4 @@
+import json
 import os
 
 import numpy as np
@@ -28,6 +29,12 @@ if __name__ == '__main__':
         samples_in_curr_buc = []
         for sample_ind in range(st_ind, en_ind):
             sample_name = all_train_files[sample_ind]
+            sample_path = os.path.join(train_data_dir, sample_name)
+            with open(sample_path) as f:
+                js = json.loads(f.read())
+                if js['article'] is None or js['article'] == '':
+                    continue
+
             samples_in_curr_buc.append(sample_name)
 
         bucket_samples_map[bucket_id] = samples_in_curr_buc
