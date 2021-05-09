@@ -69,9 +69,8 @@ def decode(save_path, model_dir, split, batch_size,
     # Decoding
     i = 0
     with torch.no_grad():
-        for i_debug, (raw_article_batch, batch_files_list) in enumerate(loader):
+        for i_debug, raw_article_batch in enumerate(loader):
             tokenized_article_batch = map(tokenize(None), raw_article_batch)
-            batch_files_list = [file_name.split('.')[0] for file_name in batch_files_list]
             ext_arts = []
             ext_inds = []
             for raw_art_sents in tokenized_article_batch:
@@ -92,7 +91,7 @@ def decode(save_path, model_dir, split, batch_size,
             assert i == batch_size*i_debug
             for j, n in ext_inds:
                 decoded_sents = [' '.join(dec) for dec in dec_outs[j:j+n]]
-                with open(join(save_path, 'output/{}.dec'.format(batch_files_list[i])),
+                with open(join(save_path, 'output/{}.dec'.format(i)),
                           'w') as f:
                     f.write(make_html_safe('\n'.join(decoded_sents)))
                 i += 1
