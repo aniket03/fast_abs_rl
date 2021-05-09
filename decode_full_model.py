@@ -53,7 +53,7 @@ def decode(save_path, model_dir, split, batch_size,
             else:
                 file_names.append(file_name)
                 articles.append(article)
-        return articles
+        return articles, file_names
 
     dataset = DecodeDataset(split, cross_rev_bucket=cross_rev_bucket)
 
