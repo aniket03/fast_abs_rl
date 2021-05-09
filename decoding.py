@@ -3,36 +3,52 @@ import json
 import re
 import os
 from os.path import join
+import pandas as pd
 import pickle as pkl
 from itertools import starmap
 
 from cytoolz import curry
 
 import torch
+from torch.utils.data import Dataset
 
 from utils import PAD, UNK, START, END
 from model.copy_summ import CopySumm
 from model.extract import ExtractSumm, PtrExtractSumm
 from model.rl import ActorCritic
 from data.batcher import conver2id, pad_batch_tensorize
-from data.data import CnnDmDataset
-
+from data.data import CnnDmDataset, _count_data
 
 try:
     DATASET_DIR = os.environ['DATA']
 except KeyError:
     print('please use environment variable to specify data directories')
 
-class DecodeDataset(CnnDmDataset):
+class DecodeDataset(Dataset):
     """ get the article sentences only (for decoding use)"""
     def __init__(self, split, cross_rev_bucket=None):
         # assert split in ['val', 'test']
-        super().__init__(split, DATASET_DIR, cross_rev_bucket=cross_rev_bucket)
+        # super().__init__(split, DATASET_DIR, cross_rev_bucket=cross_rev_bucket)
+
+        self._data_path = join(DATASET_DIR, split)
+        self.cross_rev_bucket = cross_rev_bucket
+        if self.cross_rev_bucket:
+            cross_rev_buc_file_path = join(DATASET_DIR, 'cross_rev_bucket_{}.csv'.format(self.cross_rev_bucket))
+            cross_rev_buc_df = pd.read_csv(cross_rev_buc_file_path)
+            self.bucket_samples = cross_rev_buc_df['filename']
+            self._n_data = len(self.bucket_samples)
+        else:
+            self._n_data = _count_data(self._data_path)
 
     def __getitem__(self, i):
-        js_data = super().__getitem__(i)
-        art_sents = js_data['article']
-        return art_sents
+        if self.cross_rev_bucket is not None:
+            reqd_file_name = self.bucket_samples[i]
+            with open(join(self._data_path, reqd_file_name)) as f:
+                js = json.loads(f.read())
+        else:
+            with open(join(self._data_path, '{}.json'.format(i))) as f:
+                js = json.loads(f.read())
+        return js
 
 
 def make_html_safe(s):
