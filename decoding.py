@@ -40,6 +40,9 @@ class DecodeDataset(Dataset):
         else:
             self._n_data = _count_data(self._data_path)
 
+    def __len__(self):
+        return self._n_data
+
     def __getitem__(self, i):
         if self.cross_rev_bucket is not None:
             reqd_file_name = self.bucket_samples[i]
