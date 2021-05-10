@@ -15,26 +15,28 @@ except KeyError:
 
 def main(args):
 
+    # Define directories of train set and decoded summaries
     DATA_DIR = os.environ['DATA']
     train_data_dir = os.path.join(DATA_DIR, 'train')
     dec_dir = args.decoded_data_dir
 
-    decoded_files = os.listdir(dec_dir)
+    # Get reference files list
     ref_files_df = pd.read_csv(os.path.join(DATA_DIR, args.bucket_file_path))
     ref_files = ref_files_df['filename']
 
+    # Get rouge scores list between reference and generated texts
     rouge_scores_list = []
-    for ind, dec_file_name in enumerate(decoded_files):
+    for ind, act_file_name in enumerate(ref_files):
 
-        act_file_name = ref_files[ind]
         with open(join(train_data_dir, act_file_name)) as f:
             js = json.loads(f.read())
             abstract = '\n'.join(js['abstract'])
 
+        dec_file_name = str(ind) + '.dec'
         with open(join(dec_dir, dec_file_name)) as f:
             generation = f.read()
 
-        rouge_score = compute_rouge_n(generation.split(' '), abstract.split(' '))
+        rouge_score = compute_rouge_n(generation.split(), abstract.split())
         rouge_scores_list.append(rouge_score)
 
     df = pd.DataFrame()
