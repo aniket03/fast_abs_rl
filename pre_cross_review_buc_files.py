@@ -33,7 +33,9 @@ if __name__ == '__main__':
             with open(sample_path) as f:
                 js = json.loads(f.read())
             f.close()
-            if js['article'] is None or js['article'] == '':
+            article = js['article']
+            if article is None or len(article) == 0:
+                print('File {} has no article in it'.format(sample_ind))
                 del js
                 continue
             del js
