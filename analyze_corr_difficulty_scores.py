@@ -35,7 +35,7 @@ if __name__ == '__main__':
     train_data_dir = os.path.join(DATA_DIR, 'train')
 
     article_len_list = []
-    for ind, filename in filenames:
+    for ind, filename in enumerate(filenames):
         with open(os.path.join(train_data_dir, filename)) as f:
             js = json.loads(f.read())
         art_sents = js['article']
