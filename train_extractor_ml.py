@@ -13,6 +13,7 @@ from torch.nn import functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
+from decoding import load_best_ckpt
 from model.extract import ExtractSumm, PtrExtractSumm
 from model.util import sequence_loss
 from training import get_basic_grad_fn, basic_validate
@@ -134,6 +135,11 @@ def main(args):
     net, net_args = configure_net(args.net_type,
                                   len(word2id), args.emb_dim, args.conv_hidden,
                                   args.lstm_hidden, args.lstm_layer, args.bi)
+
+    if args.prev_trained is True:
+        ext_ckpt = load_best_ckpt(args.prev_trained)
+        net.load_state_dict(ext_ckpt)
+
     if args.w2v:
         # NOTE: the pretrained embedding having the same dimension
         #       as args.emb_dim should already be trained
@@ -184,6 +190,7 @@ if __name__ == '__main__':
         description='training of the feed-forward extractor (ff-ext, ML)'
     )
     parser.add_argument('--path', required=True, help='root of the model')
+    parser.add_argument('--prev-trained', required=False, help='path to previously trained model directory.')
     parser.add_argument('--cross-rev-bucket', default=None,
                         help='cross review bucket id if training agent to get difficulty scores for summarization')
 

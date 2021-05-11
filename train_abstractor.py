@@ -13,6 +13,7 @@ from torch.nn import functional as F
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
+from decoding import load_best_ckpt
 from model.copy_summ import CopySumm
 from model.util import sequence_loss
 from training import get_basic_grad_fn, basic_validate
@@ -121,6 +122,10 @@ def main(args):
     # make net
     net, net_args = configure_net(len(word2id), args.emb_dim,
                                   args.n_hidden, args.bi, args.n_layer)
+    if args.prev_trained is True:
+        abs_ckpt = load_best_ckpt(args.prev_trained)
+        net.load_state_dict(abs_ckpt)
+
     if args.w2v:
         # NOTE: the pretrained embedding having the same dimension
         #       as args.emb_dim should already be trained
@@ -171,6 +176,8 @@ if __name__ == '__main__':
         description='training of the abstractor (ML)'
     )
     parser.add_argument('--path', required=True, help='root of the model')
+    parser.add_argument('--prev-trained', required=False, help='path to previously trained model directory.')
+
     parser.add_argument('--cross-rev-bucket', default=None,
                         help='cross review bucket id if training agent to get difficulty scores for summarization')
 
