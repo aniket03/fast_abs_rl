@@ -43,8 +43,21 @@ if __name__ == '__main__':
 
         article_len_list.append(len(article_text.split()))
 
-    corr_coef = np.corrcoef(article_len_list, diff_scores)
-    plot_article_len_vs_diff_score(article_len_list, diff_scores)
+    article_len_q25, article_len_q75 = np.percentile(article_len_list, [25, 75])
+    iqr = article_len_q75 - article_len_q25
+    lower_bound_len = article_len_q25 - 1.5 * iqr
+    upper_bound_len = article_len_q75 + 1.5 * iqr
+
+    final_article_len_list, final_diff_scores_list = [], []
+    for article_len, diff_score in zip(article_len_list, diff_scores):
+        if article_len < lower_bound_len or article_len > upper_bound_len:
+            continue
+        else:
+            final_article_len_list.append(article_len)
+            final_diff_scores_list.append(diff_score)
+
+    corr_coef = np.corrcoef(final_article_len_list, final_diff_scores_list)
+    plot_article_len_vs_diff_score(final_article_len_list, final_diff_scores_list)
     print (corr_coef)
 
 
